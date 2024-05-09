@@ -8,4 +8,4 @@ let initwebRoutes = (app) => {
     })
     return app.use("/", router);
 }
-    module.exports = initwebRoutes;
+module.exports = initwebRoutes;
