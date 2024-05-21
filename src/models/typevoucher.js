@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class typevoucher extends Model {
+  class TypeVoucher extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -14,14 +14,14 @@ module.exports = (sequelize, DataTypes) => {
       TypeVoucher.hasMany(models.Voucher, { foreignKey: 'typeVoucherId', as: 'typeVoucherOfVoucherData' })
     }
   };
-  typevoucher.init({
+    TypeVoucher.init({
     typeVoucher: DataTypes.STRING,
     value: DataTypes.BIGINT,
     maxValue: DataTypes.BIGINT,
     minValue: DataTypes.BIGINT
   }, {
     sequelize,
-    modelName: 'typevoucher',
+    modelName: 'TypeVoucher',
   });
-  return typevoucher;
+  return TypeVoucher;
 };

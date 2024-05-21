@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class voucher extends Model {
+  class Voucher extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       Voucher.hasMany(models.OrderProduct, { foreignKey: 'voucherId', as: 'voucherData' })
     }
   };
-  voucher.init({
+  Voucher.init({
     fromDate: DataTypes.STRING,
     toDate: DataTypes.STRING,
     typeVoucherId: DataTypes.INTEGER,
@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
     codeVoucher: DataTypes.STRING
   }, {
     sequelize,
-    modelName: 'voucher',
+    modelName: 'Voucher',
   });
-  return voucher;
+  return Voucher;
 };
