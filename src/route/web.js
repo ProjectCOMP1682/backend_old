@@ -10,6 +10,7 @@ let initwebRoutes = (app) => {
     //=====================API USER==========================//
     router.post('/api/login', userController.handleLogin)
     router.post('/api/create-new-user', userController.handleCreateNewUser)
+    router.put('/api/update-user', middlewareControllers.verifyTokenUser, userController.handleUpdateUser)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
