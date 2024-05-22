@@ -1,5 +1,6 @@
 import express from "express";
 import userController from "../controllers/userController"
+import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
 
 let initwebRoutes = (app) => {

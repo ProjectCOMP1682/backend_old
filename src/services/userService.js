@@ -1,6 +1,7 @@
 import db from "../models/index";
 import bcrypt from "bcryptjs";
 require('dotenv').config();
+import CommonUtils from '../utils/CommonUtils';
 const salt = bcrypt.genSaltSync(10);
 
 let hashUserPasswordFromBcrypt = (password) => {
@@ -95,7 +96,6 @@ let handleLogin = (data) => {
                 if (isExist === true) {
                     let user = await db.User.findOne({
                         attributes: ['email', 'roleId', 'password', 'firstName', 'lastName', 'id'],
-                        // where: { email: data.email, statusId: 'S1' },
                         where: { email: data.email, statusId: 'S1' },
                         raw: true
                     })
@@ -108,7 +108,13 @@ let handleLogin = (data) => {
                             delete user.password;
 
                             userData.user = user;
-                            // userData.accessToken = CommonUtils.encodeToken(user.id)
+                            userData.accessToken = CommonUtils.encodeToken(user.id)
+                            user.usertoken= userData.accessToken
+                            await db.User.update(
+                                { usertoken: userData.accessToken },
+                                { where: { id: user.id } }
+                            );
+
                         } else {
                             userData.errCode = 3;
 

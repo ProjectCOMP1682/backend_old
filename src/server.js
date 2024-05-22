@@ -4,6 +4,7 @@ import viewEngine from "./config/viewEngine";
 import connectDB from "./config/connectDB";
 import initwebRoutes from "./route/web";
 import http from "http";
+import {middlewareControllers} from './middlewares/jwtVerify'
 require('dotenv').config();
 
 
@@ -17,6 +18,7 @@ initwebRoutes(app);
 const server = http.createServer(app);
 
 connectDB();
+
 
 let port = process.env.PORT || 6969;
 
