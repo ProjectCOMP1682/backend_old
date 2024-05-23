@@ -4,7 +4,14 @@ require('dotenv').config();
 import CommonUtils from '../utils/CommonUtils';
 const { Op } = require("sequelize");
 const salt = bcrypt.genSaltSync(10);
+import emailService from "./emailService";
+import { v4 as uuidv4 } from 'uuid';
 
+let buildUrlEmail = (token, userId) => {
+
+    let result = `${process.env.URL_REACT}/verify-email?token=${token}&userId=${userId}`;
+    return result;
+}
 let hashUserPasswordFromBcrypt = (password) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -185,11 +192,11 @@ let handleLogin = (data) => {
 
                             userData.user = user;
                             userData.accessToken = CommonUtils.encodeToken(user.id)
-                            user.usertoken= userData.accessToken
-                            await db.User.update(
-                                { usertoken: userData.accessToken },
-                                { where: { id: user.id } }
-                            );
+                            // user.usertoken= userData.accessToken
+                            // await db.User.update(
+                            //     { usertoken: userData.accessToken },
+                            //     { where: { id: user.id } }
+                            // );
 
                         } else {
                             userData.errCode = 3;
@@ -320,6 +327,178 @@ let getDetailUserById = (userid) => {
         }
     })
 }
+let handleSendVerifyEmailUser = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            if (!data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let user = await db.User.findOne({
+                    where: { id: data.id },
+                    attributes: {
+                        exclude: ['password']
+                    },
+                    raw: false
+                })
+
+                if (user) {
+                    let token = uuidv4();
+                    user.usertoken = token;
+                    await emailService.sendSimpleEmail({
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        redirectLink: buildUrlEmail(token, user.id),
+                        email: user.email,
+                        type: 'verifyEmail'
+                    })
+                    await user.save();
+
+                }
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let handleVerifyEmailUser = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.token) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let user = await db.User.findOne({
+                    where: {
+                        id: data.id,
+                        usertoken: data.token
+                    },
+                    attributes: {
+                        exclude: ['password']
+                    },
+                    raw: false
+                })
+
+                if (user) {
+                    user.isActiveEmail = 1
+                    user.usertoken = "";
+
+                    await user.save();
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+
+                } else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: 'User not found!'
+                    })
+                }
+
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let handleSendEmailForgotPassword = (email) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!email) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let check = await checkUserEmail(email)
+                if (check === true) {
+                    let user = await db.User.findOne({
+                        where: { email: email },
+                        attributes: {
+                            exclude: ['password']
+                        },
+                        raw: false
+                    })
+
+                    if (user) {
+                        let token = uuidv4();
+                        user.usertoken = token;
+                        await emailService.sendSimpleEmail({
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            redirectLink: `${process.env.URL_REACT}/verify-forgotpassword?token=${token}&userId=${user.id}`,
+                            email: user.email,
+                            type: 'forgotpassword'
+                        })
+                        await user.save();
+
+                    }
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                } else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: `Your's email isn't exist in your system. plz try other email`
+                    })
+                }
+
+
+
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let handleForgotPassword = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.token || !data.password) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let user = await db.User.findOne({
+                    where: {
+                        id: data.id,
+                        usertoken: data.token
+                    },
+                    attributes: {
+                        exclude: ['password']
+                    },
+                    raw: false
+                })
+
+                if (user) {
+                    user.password = await hashUserPasswordFromBcrypt(data.password);
+                    user.usertoken = "";
+
+                    await user.save();
+
+                }
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     handleLogin: handleLogin,
     handleCreateNewUser: handleCreateNewUser,
@@ -328,5 +507,9 @@ module.exports = {
     handleChangePassword: handleChangePassword,
     getAllUser: getAllUser,
     getDetailUserById: getDetailUserById,
+    handleSendVerifyEmailUser: handleSendVerifyEmailUser,
+    handleVerifyEmailUser: handleVerifyEmailUser,
+    handleSendEmailForgotPassword: handleSendEmailForgotPassword,
+    handleForgotPassword: handleForgotPassword,
 
 }
