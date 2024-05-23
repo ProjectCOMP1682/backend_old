@@ -13,6 +13,7 @@ let initwebRoutes = (app) => {
     router.put('/api/update-user', middlewareControllers.verifyTokenUser, userController.handleUpdateUser)
     router.delete('/api/delete-user', middlewareControllers.verifyTokenAdmin, userController.handleDeleteUser)
     router.post('/api/changepassword', middlewareControllers.verifyTokenUser, userController.handleChangePassword)
+    router.get('/api/get-all-user', middlewareControllers.verifyTokenAdmin, userController.getAllUser)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;

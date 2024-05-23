@@ -2,6 +2,7 @@ import db from "../models/index";
 import bcrypt from "bcryptjs";
 require('dotenv').config();
 import CommonUtils from '../utils/CommonUtils';
+const { Op } = require("sequelize");
 const salt = bcrypt.genSaltSync(10);
 
 let hashUserPasswordFromBcrypt = (password) => {
@@ -249,11 +250,47 @@ let handleChangePassword = (data) => {
         }
     })
 }
+let getAllUser = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let objectFilter = {
+                where: { statusId: 'S1' },
+                attributes: {
+                    exclude: ['password', 'image']
+                },
+                include: [
+                    { model: db.Allcode, as: 'roleData', attributes: ['value', 'code'] },
+                    { model: db.Allcode, as: 'genderData', attributes: ['value', 'code'] },
+                ],
+                raw: true,
+                nest: true
+            }
 
+            if (data.limit && data.offset) {
+                objectFilter.limit = +data.limit
+                objectFilter.offset = +data.offset
+            }
+            // if (data.keyword !== '') objectFilter.where = { ...objectFilter.where, phonenumber: { [Op.substring]: data.keyword } }
+
+
+            let res = await db.User.findAndCountAll(objectFilter)
+            resolve({
+                errCode: 0,
+                data: res.rows,
+                count: res.count
+            })
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     handleLogin: handleLogin,
     handleCreateNewUser: handleCreateNewUser,
     updateUserData: updateUserData,
     deleteUser: deleteUser,
     handleChangePassword: handleChangePassword,
+    getAllUser: getAllUser,
 }
