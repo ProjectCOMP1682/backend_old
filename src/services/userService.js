@@ -212,9 +212,48 @@ let handleLogin = (data) => {
         }
     })
 }
+
+let handleChangePassword = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.password || !data.oldpassword) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let user = await db.User.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                if (await bcrypt.compareSync(data.oldpassword, user.password)) {
+                    if (user) {
+                        user.password = await hashUserPasswordFromBcrypt(data.password);
+                        await user.save();
+                    }
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                }
+                else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: 'Mật khẩu cũ không chính xác'
+                    })
+                }
+
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 module.exports = {
     handleLogin: handleLogin,
     handleCreateNewUser: handleCreateNewUser,
     updateUserData: updateUserData,
     deleteUser: deleteUser,
+    handleChangePassword: handleChangePassword,
 }

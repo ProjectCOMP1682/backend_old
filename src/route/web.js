@@ -12,6 +12,7 @@ let initwebRoutes = (app) => {
     router.post('/api/create-new-user', userController.handleCreateNewUser)
     router.put('/api/update-user', middlewareControllers.verifyTokenUser, userController.handleUpdateUser)
     router.delete('/api/delete-user', middlewareControllers.verifyTokenAdmin, userController.handleDeleteUser)
+    router.post('/api/changepassword', middlewareControllers.verifyTokenUser, userController.handleChangePassword)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
