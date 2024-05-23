@@ -14,6 +14,8 @@ let initwebRoutes = (app) => {
     router.delete('/api/delete-user', middlewareControllers.verifyTokenAdmin, userController.handleDeleteUser)
     router.post('/api/changepassword', middlewareControllers.verifyTokenUser, userController.handleChangePassword)
     router.get('/api/get-all-user', middlewareControllers.verifyTokenAdmin, userController.getAllUser)
+    router.get('/api/get-detail-user-by-id', userController.getDetailUserById)
+
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
