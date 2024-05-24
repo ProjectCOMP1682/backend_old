@@ -1,5 +1,7 @@
 import express from "express";
 import userController from "../controllers/userController"
+import allcodeController from '../controllers/allcodeController';
+
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
 
@@ -19,6 +21,10 @@ let initwebRoutes = (app) => {
     router.post('/api/verify-email', middlewareControllers.verifyTokenUser, userController.handleVerifyEmailUser)
     router.post('/api/send-forgotpassword-email', userController.handleSendEmailForgotPassword)
     router.post('/api/forgotpassword-email', userController.handleForgotPassword)
+    router.get('/api/check-phonenumber-email', userController.checkPhonenumberEmail)
+    //===================API ALLCODE========================//
+    router.post('/api/create-new-all-code', middlewareControllers.verifyTokenAdmin, allcodeController.handleCreateNewAllCode)
+
 
 
     return app.use("/", router);

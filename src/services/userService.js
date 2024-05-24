@@ -499,6 +499,38 @@ let handleForgotPassword = (data) => {
         }
     })
 }
+let checkPhonenumberEmail = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let phone = await db.User.findOne({
+                where: { phonenumber: data.phonenumber }
+            })
+            let email = await db.User.findOne({
+                where: { email: data.email }
+            })
+            if (phone) {
+                resolve({
+                    isCheck: true,
+                    errMessage: "Số điện thoại đã tồn tại"
+                })
+            }
+            if (email) {
+                resolve({
+                    isCheck: true,
+                    errMessage: "Email đã tồn tại"
+                })
+            }
+
+            resolve({
+                isCheck: false,
+                errMessage: "Hợp lệ"
+            })
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     handleLogin: handleLogin,
     handleCreateNewUser: handleCreateNewUser,
@@ -511,5 +543,7 @@ module.exports = {
     handleVerifyEmailUser: handleVerifyEmailUser,
     handleSendEmailForgotPassword: handleSendEmailForgotPassword,
     handleForgotPassword: handleForgotPassword,
+    checkPhonenumberEmail: checkPhonenumberEmail
+
 
 }
