@@ -1,4 +1,33 @@
 import db from "../models/index";
+// const { Op } = require("sequelize");
+
+function dynamicSort(property) {
+    var sortOrder = 1;
+    if (property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a, b) {
+        /// sap xep tang dan
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
+function dynamicSortMultiple() {
+
+    var props = arguments;
+    return function (obj1, obj2) {
+        var i = 0, result = 0, numberOfProperties = props.length;
+        /* try getting a different result from 0 (equal)
+         * as long as we have extra properties to compare
+         */
+        while (result === 0 && i < numberOfProperties) {
+            result = dynamicSort(props[i])(obj1, obj2);
+            i++;
+        }
+        return result;
+    }
+}
 
 let createNewProduct = (data) => {
     return new Promise(async (resolve, reject) => {
@@ -54,6 +83,66 @@ let createNewProduct = (data) => {
         }
     })
 }
+
+let getAllProductAdmin = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let objectFilter = {
+
+                include: [
+                    { model: db.Allcode, as: 'brandData', attributes: ['value', 'code'] },
+                    { model: db.Allcode, as: 'categoryData', attributes: ['value', 'code'] },
+                    { model: db.Allcode, as: 'statusData', attributes: ['value', 'code'] },
+                ],
+                raw: true,
+                nest: true
+            }
+            if (data.limit && data.offset) {
+                objectFilter.limit = +data.limit
+                objectFilter.offset = +data.offset
+            }
+
+            if (data.categoryId && data.categoryId !== 'ALL') objectFilter.where = { categoryId: data.categoryId }
+            if (data.brandId && data.brandId !== 'ALL') objectFilter.where = { ...objectFilter.where, brandId: data.brandId }
+            // if (data.sortName === "true") objectFilter.order = [['name', 'ASC']]
+            // if (data.keyword !== '') objectFilter.where = { ...objectFilter.where, name: { [Op.substring]: data.keyword } }
+
+            let res = await db.Product.findAndCountAll(objectFilter)
+            for (let i = 0; i < res.rows.length; i++) {
+                let objectFilterProductDetail = {
+                    where: { productId: res.rows[i].id }, raw: true
+                }
+
+                res.rows[i].productDetail = await db.ProductDetail.findAll(objectFilterProductDetail)
+
+                for (let j = 0; j < res.rows[i].productDetail.length; j++) {
+                    res.rows[i].productDetail[j].productDetailSize = await db.ProductDetailSize.findAll({ where: { productdetailId: res.rows[i].productDetail[j].id }, raw: true })
+
+                    res.rows[i].price = res.rows[i].productDetail[0].discountPrice
+                    res.rows[i].productDetail[j].productImage = await db.ProductImage.findAll({ where: { productdetailId: res.rows[i].productDetail[j].id }, raw: true })
+                    for (let k = 0; k < res.rows[i].productDetail[j].productImage.length > 0; k++) {
+                        res.rows[i].productDetail[j].productImage[k].image = new Buffer(res.rows[i].productDetail[j].productImage[k].image, 'base64').toString('binary')
+                    }
+                }
+            }
+            if (data.sortPrice && data.sortPrice === "true") {
+
+                res.rows.sort(dynamicSortMultiple("price"))
+            }
+
+            resolve({
+                errCode: 0,
+                data: res.rows,
+                count: res.count
+            })
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
+    getAllProductAdmin: getAllProductAdmin,
 }
