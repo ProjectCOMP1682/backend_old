@@ -200,8 +200,74 @@ let getAllProductUser = (data) => {
         }
     })
 }
+let UnactiveProduct = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let product = await db.Product.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                if (!product) {
+                    resolve({
+                        errCode: 2,
+                        errMessage: `The product isn't exist`
+                    })
+                } else {
+                    product.statusId = 'S2';
+                    await product.save();
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                }
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let ActiveProduct = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let product = await db.Product.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                if (!product) {
+                    resolve({
+                        errCode: 2,
+                        errMessage: `The product isn't exist`
+                    })
+                } else {
+                    product.statusId = 'S1';
+                    await product.save();
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                }
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
     getAllProductUser: getAllProductUser,
+    UnactiveProduct: UnactiveProduct,
+    ActiveProduct: ActiveProduct,
 }
