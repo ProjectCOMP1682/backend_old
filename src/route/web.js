@@ -33,6 +33,8 @@ let initwebRoutes = (app) => {
     //==================API PRODUCT=========================//
     router.post('/api/create-new-product', middlewareControllers.verifyTokenAdmin, productController.createNewProduct)
     router.get('/api/get-all-product-admin', middlewareControllers.verifyTokenAdmin, productController.getAllProductAdmin)
+    router.get('/api/get-all-product-user', productController.getAllProductUser)
+
 
 
     return app.use("/", router);

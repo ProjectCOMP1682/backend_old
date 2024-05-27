@@ -142,7 +142,66 @@ let getAllProductAdmin = (data) => {
         }
     })
 }
+let getAllProductUser = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let objectFilter = {
+                where: { statusId: 'S1' },
+                include: [
+                    { model: db.Allcode, as: 'brandData', attributes: ['value', 'code'] },
+                    { model: db.Allcode, as: 'categoryData', attributes: ['value', 'code'] },
+                    { model: db.Allcode, as: 'statusData', attributes: ['value', 'code'] },
+                ],
+                raw: true,
+                nest: true
+            }
+            if (data.limit && data.offset) {
+                objectFilter.limit = +data.limit
+                objectFilter.offset = +data.offset
+            }
+
+            if (data.categoryId && data.categoryId !== 'ALL') objectFilter.where = { categoryId: data.categoryId }
+            if (data.brandId && data.brandId !== 'ALL') objectFilter.where = { ...objectFilter.where, brandId: data.brandId }
+            // if (data.sortName === "true") objectFilter.order = [['name', 'ASC']]
+            // if (data.keyword !== '') objectFilter.where = { ...objectFilter.where, name: { [Op.substring]: data.keyword } }
+
+            let res = await db.Product.findAndCountAll(objectFilter)
+            for (let i = 0; i < res.rows.length; i++) {
+                let objectFilterProductDetail = {
+                    where: { productId: res.rows[i].id }, raw: true
+                }
+
+                res.rows[i].productDetail = await db.ProductDetail.findAll(objectFilterProductDetail)
+
+                for (let j = 0; j < res.rows[i].productDetail.length; j++) {
+                    res.rows[i].productDetail[j].productDetailSize = await db.ProductDetailSize.findAll({ where: { productdetailId: res.rows[i].productDetail[j].id }, raw: true })
+
+                    res.rows[i].price = res.rows[i].productDetail[0].discountPrice
+                    res.rows[i].productDetail[j].productImage = await db.ProductImage.findAll({ where: { productdetailId: res.rows[i].productDetail[j].id }, raw: true })
+                    for (let k = 0; k < res.rows[i].productDetail[j].productImage.length > 0; k++) {
+                        res.rows[i].productDetail[j].productImage[k].image = new Buffer(res.rows[i].productDetail[j].productImage[k].image, 'base64').toString('binary')
+                    }
+                }
+            }
+            if (data.sortPrice && data.sortPrice === "true") {
+
+                res.rows.sort(dynamicSortMultiple("price"))
+            }
+
+            resolve({
+                errCode: 0,
+                data: res.rows,
+                count: res.count
+            })
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
+    getAllProductUser: getAllProductUser,
 }
