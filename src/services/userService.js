@@ -192,6 +192,8 @@ let handleLogin = (data) => {
 
                             userData.user = user;
                             userData.accessToken = CommonUtils.encodeToken(user.id)
+                            userData.refreshToken = CommonUtils.encodeRefreshToken(user.id);
+
                             // user.usertoken= userData.accessToken
                             // await db.User.update(
                             //     { usertoken: userData.accessToken },
