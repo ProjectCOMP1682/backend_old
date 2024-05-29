@@ -61,10 +61,25 @@ let ActiveProduct = async (req, res) => {
         })
     }
 }
+let updateProduct = async (req, res) => {
+    try {
+        let data = await productService.updateProduct(req.body);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
+
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
     getAllProductUser: getAllProductUser,
     UnactiveProduct: UnactiveProduct,
     ActiveProduct: ActiveProduct,
+    updateProduct: updateProduct,
+
 }

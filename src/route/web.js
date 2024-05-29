@@ -34,6 +34,7 @@ let initwebRoutes = (app) => {
     router.get('/api/get-all-category-blog', allcodeController.getAllCategoryBlog)
     //==================API PRODUCT=========================//
     router.post('/api/create-new-product', middlewareControllers.verifyTokenAdmin, productController.createNewProduct)
+    router.put('/api/update-product', middlewareControllers.verifyTokenAdmin, productController.updateProduct)
     router.get('/api/get-all-product-admin', middlewareControllers.verifyTokenAdmin, productController.getAllProductAdmin)
     router.get('/api/get-all-product-user', productController.getAllProductUser)
     router.post('/api/unactive-product', middlewareControllers.verifyTokenAdmin, productController.UnactiveProduct)

@@ -110,7 +110,7 @@ const middlewareControllers = {
 
                 return res.status(200).json({
                     status: true,
-                    token: newAccessToken,
+                    accessToken: newAccessToken,
                     refreshToken:newRefreshToken,
                     message: 'Access Token refreshed successfully',
                 });
