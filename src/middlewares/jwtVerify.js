@@ -106,9 +106,12 @@ const middlewareControllers = {
                 }
 
                 const newAccessToken = CommonUtils.encodeToken(user.id);
+                const newRefreshToken = CommonUtils.encodeRefreshToken(user.id);
+
                 return res.status(200).json({
                     status: true,
                     token: newAccessToken,
+                    refreshToken:newRefreshToken,
                     message: 'Access Token refreshed successfully',
                 });
             });
