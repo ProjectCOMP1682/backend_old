@@ -39,6 +39,7 @@ let initwebRoutes = (app) => {
     router.get('/api/get-all-product-user', productController.getAllProductUser)
     router.post('/api/unactive-product', middlewareControllers.verifyTokenAdmin, productController.UnactiveProduct)
     router.post('/api/active-product', middlewareControllers.verifyTokenAdmin, productController.ActiveProduct)
+    router.get('/api/get-detail-product-by-id', productController.getDetailProductById)
 
 
     return app.use("/", router);

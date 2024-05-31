@@ -11,13 +11,14 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       ProductDetailSize.belongsTo(models.Allcode, { foreignKey: 'sizeId', targetKey: 'code', as: 'sizeData' })
+
     }
   };
   ProductDetailSize.init({
     productdetailId: DataTypes.INTEGER,
     width: DataTypes.STRING,
     height: DataTypes.STRING,
-    weigth: DataTypes.STRING,
+    weight: DataTypes.STRING,
     sizeId: DataTypes.STRING
   }, {
     sequelize,

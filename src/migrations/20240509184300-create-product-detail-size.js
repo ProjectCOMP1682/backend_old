@@ -1,4 +1,6 @@
 'use strict';
+const { sequelize } = require("../models");
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('ProductDetailSizes', {
@@ -17,7 +19,7 @@ module.exports = {
       height: {
         type: Sequelize.STRING
       },
-      weigth: {
+      weight: {
         type: Sequelize.STRING
       },
       sizeId: {
