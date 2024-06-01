@@ -381,6 +381,78 @@ let getDetailProductById = (id) => {
         }
     })
 }
+let getAllProductDetailById = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.limit || !data.offset) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let productdetail = await db.ProductDetail.findAndCountAll({
+                    where: { productId: data.id },
+                    limit: +data.limit,
+                    offset: +data.offset,
+                })
+                if (productdetail.rows && productdetail.rows.length > 0) {
+                    for (let i = 0; i < productdetail.rows.length; i++) {
+                        productdetail.rows[i].productImageData = await db.ProductImage.findAll({
+                            where: { productdetailId: productdetail.rows[i].id }
+                        })
+                        productdetail.rows[i].productsize = await db.ProductDetailSize.findAll({
+                            where: { productdetailId: productdetail.rows[i].id }
+                        })
+                        if (productdetail.rows[i].productImageData && productdetail.rows[i].productImageData.length > 0) {
+                            for (let j = 0; j < productdetail.rows[i].productImageData.length > 0; j++) {
+                                productdetail.rows[i].productImageData[j].image = new Buffer(productdetail.rows[i].productImageData[j].image, 'base64').toString('binary')
+                            }
+                        }
+
+                    }
+                }
+                resolve({
+                    errCode: 0,
+                    data: productdetail.rows,
+                    count: productdetail.count
+                })
+            }
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let getAllProductDetailImageById = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.limit || !data.offset) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let productImage = await db.ProductImage.findAndCountAll({
+                    where: { productdetailId: data.id },
+                    limit: +data.limit,
+                    offset: +data.offset,
+                })
+                if (productImage.rows && productImage.rows.length > 0) {
+                    productImage.rows.map(item => item.image = new Buffer(item.image, 'base64').toString('binary'))
+                }
+
+                resolve({
+                    errCode: 0,
+                    data: productImage.rows,
+                    count: productImage.count
+                })
+            }
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -389,5 +461,7 @@ module.exports = {
     ActiveProduct: ActiveProduct,
     updateProduct: updateProduct,
     getDetailProductById: getDetailProductById,
+    getAllProductDetailById: getAllProductDetailById,
+    getAllProductDetailImageById: getAllProductDetailImageById,
 
 }
