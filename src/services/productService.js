@@ -832,6 +832,96 @@ let updateProductDetailSize = (data) => {
         }
     })
 }
+let deleteProductDetailSize = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+
+                let res = await db.ProductDetailSize.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                if (res) {
+                    await db.ProductDetailSize.destroy({
+                        where: { id: data.id }
+                    })
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                } else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: 'Product Image not found!'
+                    })
+                }
+
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let deleteProductDetail = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+
+                let productDetail = await db.ProductDetail.findOne({
+                    where: { id: data.id }
+                })
+                if (productDetail) {
+                    await db.ProductDetail.destroy({
+                        where: { id: data.id }
+                    })
+
+                    let productImg = await db.ProductImage.findOne({
+                        where: { productdetailId: data.id }
+                    })
+                    let productSize = await db.ProductDetailSize.findOne({
+                        where: { productdetailId: data.id }
+                    })
+                    if (productImg) {
+                        await db.ProductImage.destroy({
+                            where: { productdetailId: data.id }
+                        })
+                    }
+                    if (productSize) {
+                        await db.ProductDetailSize.destroy({
+                            where: { productdetailId: data.id }
+                        })
+                    }
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                } else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: 'Product Image not found!'
+                    })
+                }
+
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -853,6 +943,8 @@ module.exports = {
     createNewProductDetailSize: createNewProductDetailSize,
     getDetailProductDetailSizeById: getDetailProductDetailSizeById,
     updateProductDetailSize: updateProductDetailSize,
+    deleteProductDetailSize: deleteProductDetailSize,
+    deleteProductDetail: deleteProductDetail,
 
 
 }
