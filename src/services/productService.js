@@ -739,6 +739,34 @@ let getAllProductDetailSizeById = (data) => {
         }
     })
 }
+let createNewProductDetailSize = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.productdetailId || !data.sizeId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                await db.ProductDetailSize.create({
+                    productdetailId: data.productdetailId,
+                    sizeId: data.sizeId,
+                    width: data.width,
+                    height: data.height,
+                    weight: data.weight,
+                })
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -757,6 +785,7 @@ module.exports = {
     updateProductDetailImage: updateProductDetailImage,
     deleteProductDetailImage: deleteProductDetailImage,
     getAllProductDetailSizeById: getAllProductDetailSizeById,
+    createNewProductDetailSize: createNewProductDetailSize,
 
 
 }
