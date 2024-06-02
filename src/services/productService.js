@@ -535,6 +535,30 @@ let updateProductDetail = (data) => {
         }
     })
 }
+let getDetailProductDetailById = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let productdetail = await db.ProductDetail.findOne({
+                    where: { id: id },
+                })
+
+                resolve({
+                    errCode: 0,
+                    data: productdetail
+                })
+            }
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -547,5 +571,7 @@ module.exports = {
     getAllProductDetailImageById: getAllProductDetailImageById,
     createNewProductDetail: createNewProductDetail,
     updateProductDetail: updateProductDetail,
+    getDetailProductDetailById: getDetailProductDetailById,
+
 
 }
