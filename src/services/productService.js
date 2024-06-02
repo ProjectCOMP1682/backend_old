@@ -453,6 +453,49 @@ let getAllProductDetailImageById = (data) => {
         }
     })
 }
+let createNewProductDetail = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.image || !data.nameDetail || !data.originalPrice || !data.discountPrice || !data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+
+                let productdetail = await db.ProductDetail.create({
+                    productId: data.id,
+                    description: data.description,
+                    originalPrice: data.originalPrice,
+                    discountPrice: data.discountPrice,
+                    nameDetail: data.nameDetail
+                })
+                if (productdetail) {
+                    await db.ProductImage.create({
+
+                        productdetailId: productdetail.id,
+                        image: data.image
+                    })
+                    await db.ProductDetailSize.create({
+                        productdetailId: productdetail.id,
+                        width: data.width,
+                        height: data.height,
+                        sizeId: data.sizeId,
+                        weight: data.weight
+                    })
+                }
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -463,5 +506,6 @@ module.exports = {
     getDetailProductById: getDetailProductById,
     getAllProductDetailById: getAllProductDetailById,
     getAllProductDetailImageById: getAllProductDetailImageById,
+    createNewProductDetail: createNewProductDetail,
 
 }

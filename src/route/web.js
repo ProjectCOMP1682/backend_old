@@ -42,6 +42,7 @@ let initwebRoutes = (app) => {
     router.get('/api/get-detail-product-by-id', productController.getDetailProductById)
     router.get('/api/get-all-product-detail-by-id', productController.getAllProductDetailById)
     router.get('/api/get-all-product-detail-image-by-id', productController.getAllProductDetailImageById)
+    router.post('/api/create-new-product-detail', middlewareControllers.verifyTokenAdmin, productController.createNewProductDetail)
 
 
     return app.use("/", router);
