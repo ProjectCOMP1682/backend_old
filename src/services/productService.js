@@ -650,6 +650,43 @@ let updateProductDetailImage = (data) => {
         }
     })
 }
+let deleteProductDetailImage = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+
+                let productImage = await db.ProductImage.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                if (productImage) {
+                    await db.ProductImage.destroy({
+                        where: { id: data.id }
+                    })
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                } else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: 'Product Image not found!'
+                    })
+                }
+
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -666,6 +703,7 @@ module.exports = {
     createNewProductDetailImage: createNewProductDetailImage,
     getDetailProductImageById: getDetailProductImageById,
     updateProductDetailImage: updateProductDetailImage,
+    deleteProductDetailImage: deleteProductDetailImage,
 
 
 }
