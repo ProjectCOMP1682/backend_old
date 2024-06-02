@@ -218,6 +218,18 @@ let createNewProductDetailSize = async (req, res) => {
         })
     }
 }
+let getDetailProductDetailSizeById = async (req, res) => {
+    try {
+        let data = await productService.getDetailProductDetailSizeById(req.query.id);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -237,5 +249,6 @@ module.exports = {
     deleteProductDetailImage: deleteProductDetailImage,
     getAllProductDetailSizeById: getAllProductDetailSizeById,
     createNewProductDetailSize: createNewProductDetailSize,
+    getDetailProductDetailSizeById: getDetailProductDetailSizeById,
 
 }
