@@ -792,6 +792,46 @@ let getDetailProductDetailSizeById = (id) => {
         }
     })
 }
+let updateProductDetailSize = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.sizeId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+
+                let res = await db.ProductDetailSize.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                if (res) {
+                    res.sizeId = data.sizeId
+                    res.width = data.width
+                    res.height = data.height
+
+                    res.weight = data.weight
+                    await res.save();
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                } else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: 'Product Image not found!'
+                    })
+                }
+
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -812,6 +852,7 @@ module.exports = {
     getAllProductDetailSizeById: getAllProductDetailSizeById,
     createNewProductDetailSize: createNewProductDetailSize,
     getDetailProductDetailSizeById: getDetailProductDetailSizeById,
+    updateProductDetailSize: updateProductDetailSize,
 
 
 }

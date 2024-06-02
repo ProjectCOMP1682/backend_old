@@ -52,6 +52,7 @@ let initwebRoutes = (app) => {
     router.get('/api/get-all-product-detail-size-by-id', productController.getAllProductDetailSizeById)
     router.post('/api/create-product-detail-size', middlewareControllers.verifyTokenAdmin, productController.createNewProductDetailSize)
     router.get('/api/get-detail-product-detail-size-by-id', productController.getDetailProductDetailSizeById)
+    router.put('/api/update-product-detail-size', middlewareControllers.verifyTokenAdmin, productController.updateProductDetailSize)
 
 
     return app.use("/", router);
