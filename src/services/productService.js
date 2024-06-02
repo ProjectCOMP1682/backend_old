@@ -687,6 +687,58 @@ let deleteProductDetailImage = (data) => {
         }
     })
 }
+let getAllProductDetailSizeById = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.limit || !data.offset) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let productsize = await db.ProductDetailSize.findAndCountAll({
+                    where: { productdetailId: data.id },
+                    limit: +data.limit,
+                    offset: +data.offset,
+                    include: [
+                        { model: db.Allcode, as: 'sizeData', attributes: ['value', 'code'] },
+
+                    ],
+                    raw: true,
+                    nest: true
+                })
+                for (let i = 0; i < productsize.rows.length > 0; i++) {
+                    let receiptDetail = await db.ReceiptDetail.findAll({ where: { productDetailSizeId: productsize.rows[i].id } })
+                    let orderDetail = await db.OrderDetail.findAll({ where: { productId: productsize.rows[i].id } })
+                    let quantity = 0
+                    for (let j = 0; j < receiptDetail.length; j++) {
+                        quantity = quantity + receiptDetail[j].quantity
+                    }
+                    for (let k = 0; k < orderDetail.length; k++) {
+                        let order = await db.OrderProduct.findOne({ where: { id: orderDetail[k].orderId } })
+                        if (order.statusId != 'S7') {
+
+                            quantity = quantity - orderDetail[k].quantity
+                        }
+
+                    }
+
+
+
+                    productsize.rows[i].stock = quantity
+                }
+                resolve({
+                    errCode: 0,
+                    data: productsize.rows,
+                    count: productsize.count
+                })
+            }
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -704,6 +756,7 @@ module.exports = {
     getDetailProductImageById: getDetailProductImageById,
     updateProductDetailImage: updateProductDetailImage,
     deleteProductDetailImage: deleteProductDetailImage,
+    getAllProductDetailSizeById: getAllProductDetailSizeById,
 
 
 }
