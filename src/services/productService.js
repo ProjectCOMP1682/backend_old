@@ -559,6 +559,32 @@ let getDetailProductDetailById = (id) => {
         }
     })
 }
+let createNewProductDetailImage = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.image || !data.caption || !data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                await db.ProductImage.create({
+                    productdetailId: data.id,
+                    caption: data.caption,
+                    image: data.image
+                })
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -572,6 +598,7 @@ module.exports = {
     createNewProductDetail: createNewProductDetail,
     updateProductDetail: updateProductDetail,
     getDetailProductDetailById: getDetailProductDetailById,
+    createNewProductDetailImage: createNewProductDetailImage,
 
 
 }

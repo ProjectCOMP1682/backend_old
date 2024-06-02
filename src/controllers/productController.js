@@ -146,6 +146,18 @@ let getDetailProductDetailById = async (req, res) => {
         })
     }
 }
+let createNewProductDetailImage = async (req, res) => {
+    try {
+        let data = await productService.createNewProductDetailImage(req.body);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -159,5 +171,6 @@ module.exports = {
     createNewProductDetail: createNewProductDetail,
     updateProductDetail: updateProductDetail,
     getDetailProductDetailById: getDetailProductDetailById,
+    createNewProductDetailImage: createNewProductDetailImage,
 
 }
