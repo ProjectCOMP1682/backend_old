@@ -496,6 +496,45 @@ let createNewProductDetail = (data) => {
         }
     })
 }
+let updateProductDetail = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.nameDetail || !data.originalPrice || !data.discountPrice || !data.id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+
+                let productDetail = await db.ProductDetail.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                if (productDetail) {
+                    productDetail.nameDetail = data.nameDetail
+                    productDetail.originalPrice = data.originalPrice
+                    productDetail.discountPrice = data.discountPrice
+                    productDetail.description = data.description
+                    await productDetail.save();
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok'
+                    })
+                } else {
+                    resolve({
+                        errCode: 2,
+                        errMessage: 'Product not found!'
+                    })
+                }
+
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -507,5 +546,6 @@ module.exports = {
     getAllProductDetailById: getAllProductDetailById,
     getAllProductDetailImageById: getAllProductDetailImageById,
     createNewProductDetail: createNewProductDetail,
+    updateProductDetail: updateProductDetail,
 
 }
