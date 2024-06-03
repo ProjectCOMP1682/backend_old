@@ -1011,6 +1011,76 @@ let getProductNew = (limit) => {
         }
     })
 }
+let getProductShopCart = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let productArr = []
+            if (!data.userId && !data.limit) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter!'
+                })
+            } else {
+                let shopcart = await db.ShopCart.findAll({ where: { userId: data.userId } })
+
+                for (let i = 0; i < shopcart.length; i++) {
+                    let productDetailSize = await db.ProductDetailSize.findOne({ where: { id: shopcart[i].productdetailsizeId } })
+
+                    let productDetail = await db.ProductDetail.findOne({ where: { id: productDetailSize.productdetailId } })
+
+                    let product = await db.Product.findOne({
+                        where: { id: productDetail.productId },
+                        include: [
+                            { model: db.Allcode, as: 'brandData', attributes: ['value', 'code'] },
+                            { model: db.Allcode, as: 'categoryData', attributes: ['value', 'code'] },
+                            { model: db.Allcode, as: 'statusData', attributes: ['value', 'code'] },
+                        ],
+
+                        limit: +data.limit,
+                        order: [['view', 'DESC']],
+                        raw: true,
+                        nest: true
+                    })
+                    productArr.push(product)
+
+                }
+
+                if (productArr && productArr.length > 0) {
+                    for (let g = 0; g < productArr.length; g++) {
+                        let objectFilterProductDetail = {
+                            where: { productId: productArr[g].id }, raw: true
+                        }
+
+                        productArr[g].productDetail = await db.ProductDetail.findAll(objectFilterProductDetail)
+
+                        for (let j = 0; j < productArr[g].productDetail.length; j++) {
+                            productArr[g].productDetail[j].productDetailSize = await db.ProductDetailSize.findAll({ where: { productdetailId: productArr[g].productDetail[j].id }, raw: true })
+
+                            productArr[g].price = productArr[g].productDetail[0].discountPrice
+                            productArr[g].productDetail[j].productImage = await db.ProductImage.findAll({ where: { productdetailId: productArr[g].productDetail[j].id }, raw: true })
+                            for (let k = 0; k < productArr[g].productDetail[j].productImage.length > 0; k++) {
+                                productArr[g].productDetail[j].productImage[k].image = new Buffer(productArr[g].productDetail[j].productImage[k].image, 'base64').toString('binary')
+                            }
+                        }
+                    }
+                }
+
+
+            }
+
+
+
+            resolve({
+                errCode: 0,
+                data: productArr
+            })
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -1036,6 +1106,7 @@ module.exports = {
     deleteProductDetail: deleteProductDetail,
     getProductFeature: getProductFeature,
     getProductNew: getProductNew,
+    getProductShopCart: getProductShopCart,
 
 
 }
