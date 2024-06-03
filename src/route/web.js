@@ -58,6 +58,7 @@ let initwebRoutes = (app) => {
     router.get('/api/get-product-feature', productController.getProductFeature)
     router.get('/api/get-product-new', productController.getProductNew)
     router.get('/api/get-product-shopcart', productController.getProductShopCart)
+    router.get('/api/get-product-recommend', productController.getProductRecommend)
 
 
     return app.use("/", router);
