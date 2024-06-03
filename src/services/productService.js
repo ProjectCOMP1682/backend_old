@@ -922,6 +922,51 @@ let deleteProductDetail = (data) => {
         }
     })
 }
+let getProductFeature = (limit) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let res = await db.Product.findAll({
+                include: [
+                    { model: db.Allcode, as: 'brandData', attributes: ['value', 'code'] },
+                    { model: db.Allcode, as: 'categoryData', attributes: ['value', 'code'] },
+                    { model: db.Allcode, as: 'statusData', attributes: ['value', 'code'] },
+                ],
+
+                limit: +limit,
+                order: [['view', 'DESC']],
+                raw: true,
+                nest: true
+            })
+            for (let i = 0; i < res.length; i++) {
+                let objectFilterProductDetail = {
+                    where: { productId: res[i].id }, raw: true
+                }
+
+                res[i].productDetail = await db.ProductDetail.findAll(objectFilterProductDetail)
+
+                for (let j = 0; j < res[i].productDetail.length; j++) {
+                    res[i].productDetail[j].productDetailSize = await db.ProductDetailSize.findAll({ where: { productdetailId: res[i].productDetail[j].id }, raw: true })
+
+                    res[i].price = res[i].productDetail[0].discountPrice
+                    res[i].productDetail[j].productImage = await db.ProductImage.findAll({ where: { productdetailId: res[i].productDetail[j].id }, raw: true })
+                    for (let k = 0; k < res[i].productDetail[j].productImage.length > 0; k++) {
+                        res[i].productDetail[j].productImage[k].image = new Buffer(res[i].productDetail[j].productImage[k].image, 'base64').toString('binary')
+                    }
+                }
+            }
+
+
+            resolve({
+                errCode: 0,
+                data: res
+            })
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewProduct: createNewProduct,
     getAllProductAdmin: getAllProductAdmin,
@@ -945,6 +990,7 @@ module.exports = {
     updateProductDetailSize: updateProductDetailSize,
     deleteProductDetailSize: deleteProductDetailSize,
     deleteProductDetail: deleteProductDetail,
+    getProductFeature: getProductFeature,
 
 
 }
