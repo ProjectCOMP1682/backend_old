@@ -56,6 +56,7 @@ let initwebRoutes = (app) => {
     router.delete('/api/delete-product-detail-size', middlewareControllers.verifyTokenAdmin, productController.deleteProductDetailSize)
     router.delete('/api/delete-product-detail', middlewareControllers.verifyTokenAdmin, productController.deleteProductDetail)
     router.get('/api/get-product-feature', productController.getProductFeature)
+    router.get('/api/get-product-new', productController.getProductNew)
 
 
     return app.use("/", router);
