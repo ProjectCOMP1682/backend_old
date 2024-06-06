@@ -3,6 +3,7 @@ import userController from "../controllers/userController"
 import allcodeController from '../controllers/allcodeController';
 import productController from '../controllers/productController';
 import bannerController from '../controllers/bannerController';
+import blogController from '../controllers/blogController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -67,7 +68,14 @@ let initwebRoutes = (app) => {
     router.get('/api/get-all-banner', bannerController.getAllBanner)
     router.put('/api/update-banner', middlewareControllers.verifyTokenAdmin, bannerController.updateBanner)
     router.delete('/api/delete-banner', middlewareControllers.verifyTokenAdmin, bannerController.deleteBanner)
-
+    //=================API BLOG===============================//
+    router.post('/api/create-new-blog', middlewareControllers.verifyTokenAdmin,blogController.createNewBlog)
+    router.get('/api/get-detail-blog', blogController.getDetailBlogById)
+    router.get('/api/get-all-blog', blogController.getAllBlog)
+    router.put('/api/update-blog', middlewareControllers.verifyTokenAdmin, blogController.updateBlog)
+    router.delete('/api/delete-blog', middlewareControllers.verifyTokenAdmin, blogController.deleteBlog)
+    router.get('/api/get-feature-blog', blogController.getFeatureBlog)
+    router.get('/api/get-new-blog', blogController.getNewBlog)
 
     return app.use("/", router);
 }
