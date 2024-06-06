@@ -1152,11 +1152,6 @@ let getProductRecommend = (data) => {
                 })
 
             }
-
-
-
-
-
         } catch (error) {
             reject(error)
         }
@@ -1189,6 +1184,4 @@ module.exports = {
     getProductNew: getProductNew,
     getProductShopCart: getProductShopCart,
     getProductRecommend: getProductRecommend
-
-
 }
