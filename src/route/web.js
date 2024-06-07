@@ -4,6 +4,7 @@ import allcodeController from '../controllers/allcodeController';
 import productController from '../controllers/productController';
 import bannerController from '../controllers/bannerController';
 import blogController from '../controllers/blogController';
+import typeshipController from '../controllers/typeshipController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -76,6 +77,12 @@ let initwebRoutes = (app) => {
     router.delete('/api/delete-blog', middlewareControllers.verifyTokenAdmin, blogController.deleteBlog)
     router.get('/api/get-feature-blog', blogController.getFeatureBlog)
     router.get('/api/get-new-blog', blogController.getNewBlog)
+    //=================API TYPESHIP =======================//
+    router.post('/api/create-new-typeship', middlewareControllers.verifyTokenAdmin, typeshipController.createNewTypeShip)
+    router.get('/api/get-detail-typeship', typeshipController.getDetailTypeshipById)
+    router.get('/api/get-all-typeship', typeshipController.getAllTypeship)
+    router.put('/api/update-typeship', middlewareControllers.verifyTokenAdmin, typeshipController.updateTypeship)
+    router.delete('/api/delete-typeship', middlewareControllers.verifyTokenAdmin, typeshipController.deleteTypeship)
 
     return app.use("/", router);
 }
