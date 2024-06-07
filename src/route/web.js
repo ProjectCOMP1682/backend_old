@@ -5,6 +5,7 @@ import productController from '../controllers/productController';
 import bannerController from '../controllers/bannerController';
 import blogController from '../controllers/blogController';
 import typeshipController from '../controllers/typeshipController';
+import voucherController from '../controllers/voucherController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -83,6 +84,22 @@ let initwebRoutes = (app) => {
     router.get('/api/get-all-typeship', typeshipController.getAllTypeship)
     router.put('/api/update-typeship', middlewareControllers.verifyTokenAdmin, typeshipController.updateTypeship)
     router.delete('/api/delete-typeship', middlewareControllers.verifyTokenAdmin, typeshipController.deleteTypeship)
+    //================API TYPEVOUCHER======================//
+    router.post('/api/create-new-typevoucher', middlewareControllers.verifyTokenAdmin, voucherController.createNewTypeVoucher)
+    router.get('/api/get-detail-typevoucher', voucherController.getDetailTypeVoucherById)
+    router.get('/api/get-all-typevoucher', voucherController.getAllTypeVoucher)
+    router.put('/api/update-typevoucher', middlewareControllers.verifyTokenAdmin, voucherController.updateTypeVoucher)
+    router.delete('/api/delete-typevoucher', middlewareControllers.verifyTokenAdmin, voucherController.deleteTypeVoucher)
+    router.get('/api/get-select-typevoucher', voucherController.getSelectTypeVoucher)
+
+    //=================API VOUCHER==========================//
+    router.post('/api/create-new-voucher', middlewareControllers.verifyTokenAdmin, voucherController.createNewVoucher)
+    router.get('/api/get-detail-voucher', voucherController.getDetailVoucherById)
+    router.get('/api/get-all-voucher', voucherController.getAllVoucher)
+    router.put('/api/update-voucher', middlewareControllers.verifyTokenAdmin, voucherController.updateVoucher)
+    router.delete('/api/delete-voucher', middlewareControllers.verifyTokenAdmin, voucherController.deleteVoucher)
+    router.post('/api/save-user-voucher', middlewareControllers.verifyTokenUser, voucherController.saveUserVoucher)
+    router.get('/api/get-all-voucher-by-userid', voucherController.getAllVoucherByUserId)
 
     return app.use("/", router);
 }
