@@ -6,6 +6,7 @@ import bannerController from '../controllers/bannerController';
 import blogController from '../controllers/blogController';
 import typeshipController from '../controllers/typeshipController';
 import voucherController from '../controllers/voucherController';
+import commentController from '../controllers/commentController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -100,7 +101,11 @@ let initwebRoutes = (app) => {
     router.delete('/api/delete-voucher', middlewareControllers.verifyTokenAdmin, voucherController.deleteVoucher)
     router.post('/api/save-user-voucher', middlewareControllers.verifyTokenUser, voucherController.saveUserVoucher)
     router.get('/api/get-all-voucher-by-userid', voucherController.getAllVoucherByUserId)
-
+    //=================API REVIEW=============================//
+    router.post('/api/create-new-review', middlewareControllers.verifyTokenUser, commentController.createNewReview)
+    router.post('/api/reply-review', middlewareControllers.verifyTokenAdmin, commentController.ReplyReview)
+    router.get('/api/get-all-review-by-productId', commentController.getAllReviewByProductId)
+    router.delete('/api/delete-review', middlewareControllers.verifyTokenUser, commentController.deleteReview)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
