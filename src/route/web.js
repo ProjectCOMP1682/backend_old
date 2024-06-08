@@ -7,6 +7,7 @@ import blogController from '../controllers/blogController';
 import typeshipController from '../controllers/typeshipController';
 import voucherController from '../controllers/voucherController';
 import commentController from '../controllers/commentController';
+import shopCartController from '../controllers/shopCartController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -106,6 +107,12 @@ let initwebRoutes = (app) => {
     router.post('/api/reply-review', middlewareControllers.verifyTokenAdmin, commentController.ReplyReview)
     router.get('/api/get-all-review-by-productId', commentController.getAllReviewByProductId)
     router.delete('/api/delete-review', middlewareControllers.verifyTokenUser, commentController.deleteReview)
+
+    //=================API SHOPCART==========================//
+    router.post('/api/add-shopcart', middlewareControllers.verifyTokenUser, shopCartController.addShopCart)
+    router.get('/api/get-all-shopcart-by-userId', middlewareControllers.verifyTokenUser, shopCartController.getAllShopCartByUserId)
+    router.delete('/api/delete-item-shopcart', middlewareControllers.verifyTokenUser, shopCartController.deleteItemShopCart)
+
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
