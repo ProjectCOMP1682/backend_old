@@ -11,6 +11,20 @@ let createNewOrder = async (req, res) => {
         })
     }
 }
+let getAllOrders = async (req, res) => {
+    try {
+        let data = await orderService.getAllOrders(req.query);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
 module.exports = {
     createNewOrder: createNewOrder,
+    getAllOrders: getAllOrders,
+
 }

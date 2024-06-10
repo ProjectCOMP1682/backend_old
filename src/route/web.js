@@ -115,6 +115,7 @@ let initwebRoutes = (app) => {
     router.delete('/api/delete-item-shopcart', middlewareControllers.verifyTokenUser, shopCartController.deleteItemShopCart)
     //=================API ORDER=============================//
     router.post('/api/create-new-order', middlewareControllers.verifyTokenUser, orderController.createNewOrder)
+    router.get('/api/get-all-order', orderController.getAllOrders)
 
     return app.use("/", router);
 }
