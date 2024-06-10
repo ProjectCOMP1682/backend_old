@@ -192,9 +192,48 @@ let getDetailOrderById = (id) => {
         }
     })
 }
+let updateStatusOrder = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.statusId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter !'
+                })
+            } else {
+                let order = await db.OrderProduct.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                order.statusId = data.statusId
+                await order.save()
+                // cong lai stock khi huy don
+                if (data.statusId == 'S7' && data.dataOrder.orderDetail && data.dataOrder.orderDetail.length > 0) {
+                    for (let i = 0; i < data.dataOrder.orderDetail.length; i++) {
+                        let productDetailSize = await db.ProductDetailSize.findOne({
+                            where: { id: data.dataOrder.orderDetail[i].productDetailSize.id },
+                            raw: false
+                        })
+                        productDetailSize.stock = productDetailSize.stock + data.dataOrder.orderDetail[i].quantity
+                        await productDetailSize.save()
+                    }
+                }
+
+
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
     getDetailOrderById: getDetailOrderById,
+    updateStatusOrder: updateStatusOrder,
 
 }
