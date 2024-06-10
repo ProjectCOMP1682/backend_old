@@ -8,6 +8,7 @@ import typeshipController from '../controllers/typeshipController';
 import voucherController from '../controllers/voucherController';
 import commentController from '../controllers/commentController';
 import shopCartController from '../controllers/shopCartController';
+import orderController from '../controllers/orderController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -112,6 +113,8 @@ let initwebRoutes = (app) => {
     router.post('/api/add-shopcart', middlewareControllers.verifyTokenUser, shopCartController.addShopCart)
     router.get('/api/get-all-shopcart-by-userId', middlewareControllers.verifyTokenUser, shopCartController.getAllShopCartByUserId)
     router.delete('/api/delete-item-shopcart', middlewareControllers.verifyTokenUser, shopCartController.deleteItemShopCart)
+    //=================API ORDER=============================//
+    router.post('/api/create-new-order', middlewareControllers.verifyTokenUser, orderController.createNewOrder)
 
     return app.use("/", router);
 }
