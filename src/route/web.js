@@ -116,6 +116,7 @@ let initwebRoutes = (app) => {
     //=================API ORDER=============================//
     router.post('/api/create-new-order', middlewareControllers.verifyTokenUser, orderController.createNewOrder)
     router.get('/api/get-all-order', orderController.getAllOrders)
+    router.get('/api/get-detail-order', orderController.getDetailOrderById)
 
     return app.use("/", router);
 }

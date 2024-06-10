@@ -114,8 +114,87 @@ let getAllOrders = (data) => {
         }
     })
 }
+let getDetailOrderById = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!id) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter !'
+                })
+            } else {
+                let order = await db.OrderProduct.findOne({
+                    where: { id: id },
+                    include: [
+                        { model: db.TypeShip, as: 'typeShipData' },
+                        { model: db.Voucher, as: 'voucherData' },
+                        { model: db.Allcode, as: 'statusOrderData' },
+
+                    ],
+                    raw: true,
+                    nest: true
+                })
+                if (order.image) {
+                    order.image = new Buffer(order.image, 'base64').toString('binary')
+                }
+                order.voucherData.typeVoucherOfVoucherData = await db.TypeVoucher.findOne({
+                    where: { id: order.voucherData.typeVoucherId }
+                })
+                let orderDetail = await db.OrderDetail.findAll({
+                    where: { orderId: id }
+                })
+                let addressUser = await db.AddressUser.findOne({
+                    where: { id: order.addressUserId }
+                })
+                order.addressUser = addressUser
+                let user = await db.User.findOne({
+                    where: { id: addressUser.userId },
+                    attributes: {
+                        exclude: ['password', 'image']
+                    },
+                    raw: true,
+                    nest: true
+                })
+                order.userData = user
+                for (let i = 0; i < orderDetail.length; i++) {
+                    orderDetail[i].productDetailSize = await db.ProductDetailSize.findOne({
+                        where: { id: orderDetail[i].productId },
+                        include: [
+                            { model: db.Allcode, as: 'sizeData' },
+                        ],
+                        raw: true,
+                        nest: true
+                    })
+                    orderDetail[i].productDetail = await db.ProductDetail.findOne({
+                        where: { id: orderDetail[i].productDetailSize.productdetailId }
+                    })
+                    orderDetail[i].product = await db.Product.findOne({
+                        where: { id: orderDetail[i].productDetail.productId }
+                    })
+                    orderDetail[i].productImage = await db.ProductImage.findAll({
+                        where: { productdetailId: orderDetail[i].productDetail.id }
+                    })
+                    for (let j = 0; j < orderDetail[i].productImage.length; j++) {
+                        orderDetail[i].productImage[j].image = new Buffer(orderDetail[i].productImage[j].image, 'base64').toString('binary')
+                    }
+                }
+
+                order.orderDetail = orderDetail;
+
+                resolve({
+                    errCode: 0,
+                    data: order
+                })
+            }
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
+    getDetailOrderById: getDetailOrderById,
 
 }
