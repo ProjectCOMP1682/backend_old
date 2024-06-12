@@ -1,4 +1,5 @@
 import db from "../models/index";
+
 require('dotenv').config()
 let createNewOrder = (data) => {
     return new Promise(async (resolve, reject) => {
@@ -230,10 +231,138 @@ let updateStatusOrder = (data) => {
         }
     })
 }
+let getAllOrdersByUser = (userId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!userId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter !'
+                })
+            } else {
+                let addressUser = await db.AddressUser.findAll({
+                    where: { userId: userId }
+                })
+                for (let i = 0; i < addressUser.length; i++) {
+                    addressUser[i].order = await db.OrderProduct.findAll({
+                        where: { addressUserId: addressUser[i].id },
+                        include: [
+                            { model: db.TypeShip, as: 'typeShipData' },
+                            { model: db.Voucher, as: 'voucherData' },
+                            { model: db.Allcode, as: 'statusOrderData' },
+
+                        ],
+                        raw: true,
+                        nest: true
+                    })
+                    for (let j = 0; j < addressUser[i].order.length; j++) {
+                        addressUser[i].order[j].voucherData.typeVoucherOfVoucherData = await db.TypeVoucher.findOne({
+                            where: { id: addressUser[i].order[j].voucherData.typeVoucherId }
+                        })
+                        let orderDetail = await db.OrderDetail.findAll({
+                            where: { orderId: addressUser[i].order[j].id }
+                        })
+                        for (let k = 0; k < orderDetail.length; k++) {
+                            orderDetail[k].productDetailSize = await db.ProductDetailSize.findOne({
+                                where: { id: orderDetail[k].productId },
+                                include: [
+                                    { model: db.Allcode, as: 'sizeData' },
+                                ],
+                                raw: true,
+                                nest: true
+                            })
+                            orderDetail[k].productDetail = await db.ProductDetail.findOne({
+                                where: { id: orderDetail[k].productDetailSize.productdetailId }
+                            })
+                            orderDetail[k].product = await db.Product.findOne({
+                                where: { id: orderDetail[k].productDetail.productId }
+                            })
+                            orderDetail[k].productImage = await db.ProductImage.findAll({
+                                where: { productdetailId: orderDetail[k].productDetail.id }
+                            })
+                            for (let f = 0; f < orderDetail[k].productImage.length; f++) {
+                                orderDetail[k].productImage[f].image = new Buffer(orderDetail[k].productImage[f].image, 'base64').toString('binary')
+                            }
+                        }
+
+
+                        addressUser[i].order[j].orderDetail = orderDetail
+                    }
+
+
+
+                }
+
+
+                resolve({
+                    errCode: 0,
+                    data: addressUser
+
+                })
+            }
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let getAllOrdersByShipper = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log(data.shipperId)
+            let objectFilter = {
+                include: [
+                    { model: db.TypeShip, as: 'typeShipData' },
+                    { model: db.Voucher, as: 'voucherData' },
+                    { model: db.Allcode, as: 'statusOrderData' },
+
+                ],
+                order: [['createdAt', 'DESC']],
+                raw: true,
+                nest: true,
+                where: { shipperId: data.shipperId }
+            }
+
+            if (data.status && data.status == 'working') objectFilter.where = { ...objectFilter.where, statusId: 'S5' }
+            if (data.status && data.status == 'done') objectFilter.where = { ...objectFilter.where, statusId: 'S6' }
+
+            let res = await db.OrderProduct.findAll(objectFilter)
+
+            for (let i = 0; i < res.length; i++) {
+                let addressUser = await db.AddressUser.findOne({ where: { id: res[i].addressUserId } })
+                if (addressUser) {
+                    let user = await db.User.findOne({ where: { id: addressUser.userId } })
+                    res[i].userData = user
+                    res[i].addressUser = addressUser
+                }
+
+            }
+
+            resolve({
+                errCode: 0,
+                data: res,
+
+            })
+
+
+            resolve({
+                errCode: 0,
+                data: addressUser
+
+            })
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
     getDetailOrderById: getDetailOrderById,
     updateStatusOrder: updateStatusOrder,
+    getAllOrdersByUser: getAllOrdersByUser,
+    getAllOrdersByShipper: getAllOrdersByShipper,
 
 }

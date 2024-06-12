@@ -47,10 +47,36 @@ let updateStatusOrder = async (req, res) => {
         })
     }
 }
+let getAllOrdersByUser = async (req, res) => {
+    try {
+        let data = await orderService.getAllOrdersByUser(req.query.userId);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
+let getAllOrdersByShipper = async (req, res) => {
+    try {
+        let data = await orderService.getAllOrdersByShipper(req.query);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
     getDetailOrderById: getDetailOrderById,
     updateStatusOrder: updateStatusOrder,
+    getAllOrdersByUser: getAllOrdersByUser,
+    getAllOrdersByShipper: getAllOrdersByShipper,
 
 }
