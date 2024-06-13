@@ -71,6 +71,30 @@ let getAllOrdersByShipper = async (req, res) => {
         })
     }
 }
+let paymentOrder = async (req, res) => {
+    try {
+        let data = await orderService.paymentOrder(req.body);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
+let paymentOrderSuccess = async (req, res) => {
+    try {
+        let data = await orderService.paymentOrderSuccess(req.body);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
@@ -78,5 +102,7 @@ module.exports = {
     updateStatusOrder: updateStatusOrder,
     getAllOrdersByUser: getAllOrdersByUser,
     getAllOrdersByShipper: getAllOrdersByShipper,
+    paymentOrder: paymentOrder,
+    paymentOrderSuccess: paymentOrderSuccess,
 
 }

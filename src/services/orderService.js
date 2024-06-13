@@ -1,5 +1,20 @@
 import db from "../models/index";
-
+import paypal from 'paypal-rest-sdk'
+const { Op } = require("sequelize");
+import { EXCHANGE_RATES } from '../utils/constants'
+// import { v4 as uuidv4 } from 'uuid';
+// var querystring = require('qs');
+// var crypto = require("crypto");
+// var dateFormat = require('dateformat')
+require('dotenv').config()
+import moment from 'moment';
+import localization from 'moment/locale/vi';
+moment.updateLocale('vi', localization);
+paypal.configure({
+    'mode': 'sandbox',
+    'client_id': 'AeaN60p8S5YJqJyYzfTpkH1jtEYPn_YuVJFJMpVJbvVIwf5jHosQexc8IMUvqdbh4uaz5xusfS2l2Qu9',
+    'client_secret': 'EGln7BWZH4Wp-L6J3f9SwXbLF9y6lrGYGMlRRmnb6TreSPQGqu0iSy0YijbmjdiRySimOMMrmnRLsM35'
+});
 require('dotenv').config()
 let createNewOrder = (data) => {
     return new Promise(async (resolve, reject) => {
@@ -38,7 +53,7 @@ let createNewOrder = (data) => {
                             where: { id: data.arrDataShopCart[i].productId },
                             raw: false
                         })
-                        //  productDetailSize.stock = productDetailSize.stock - data.arrDataShopCart[i].quantity
+                         // productDetailSize.stock = productDetailSize.stock - data.arrDataShopCart[i].quantity
                         await productDetailSize.save()
 
                     }
@@ -357,6 +372,183 @@ let getAllOrdersByShipper = (data) => {
         }
     })
 }
+let paymentOrder = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let listItem = []
+            let totalPriceProduct = 0
+            for (let i = 0; i < data.result.length; i++) {
+                data.result[i].productDetailSize = await db.ProductDetailSize.findOne({
+                    where: { id: data.result[i].productId },
+                    include: [
+                        { model: db.Allcode, as: 'sizeData' },
+                    ],
+                    raw: true,
+                    nest: true
+                })
+                data.result[i].productDetail = await db.ProductDetail.findOne({
+                    where: { id: data.result[i].productDetailSize.productdetailId }
+                })
+                data.result[i].product = await db.Product.findOne({
+                    where: { id: data.result[i].productDetail.productId }
+                })
+                data.result[i].realPrice = parseFloat((data.result[i].realPrice / EXCHANGE_RATES.USD).toFixed(2))
+
+                console.log(data.result[i].realPrice)
+                console.log(data.total)
+                listItem.push({
+                    "name": data.result[i].product.name + " | " + data.result[i].productDetail.nameDetail + " | " + data.result[i].productDetailSize.sizeData.value,
+                    "sku": data.result[i].productId + "",
+                    "price": data.result[i].realPrice + "",
+                    "currency": "USD",
+                    "quantity": data.result[i].quantity
+                })
+                totalPriceProduct += data.result[i].realPrice * data.result[i].quantity
+                console.log(data.total - totalPriceProduct)
+            }
+            listItem.push({
+                "name": "Phi ship + Voucher",
+                "sku": "1",
+                "price": parseFloat(data.total - totalPriceProduct).toFixed(2) + "",
+                "currency": "USD",
+                "quantity": 1
+            })
+
+
+            var create_payment_json = {
+                "intent": "sale",
+                "payer": {
+                    "payment_method": "paypal"
+                },
+                "redirect_urls": {
+                    "return_url": `http://localhost:5000/payment/success`,
+                    "cancel_url": "http://localhost:5000/payment/cancel"
+                },
+                "transactions": [{
+                    "item_list": {
+                        "items": listItem
+                    },
+                    "amount": {
+                        "currency": "USD",
+                        "total": data.total
+                    },
+                    "description": "This is the payment description."
+                }]
+            };
+
+            paypal.payment.create(create_payment_json, function (error, payment) {
+                if (error) {
+                    resolve({
+                        errCode: -1,
+                        errMessage: error,
+
+                    })
+
+
+                } else {
+
+                    resolve({
+                        errCode: 0,
+                        errMessage: 'ok',
+                        link: payment.links[1].href
+                    })
+
+                }
+            });
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let paymentOrderSuccess = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.PayerID || !data.paymentId || !data.token) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter !'
+                })
+            } else {
+                var execute_payment_json = {
+                    "payer_id": data.PayerID,
+                    "transactions": [{
+                        "amount": {
+                            "currency": "USD",
+                            "total": data.total
+                        }
+                    }]
+                };
+
+                var paymentId = data.paymentId;
+
+                paypal.payment.execute(paymentId, execute_payment_json, async function (error, payment) {
+                    if (error) {
+                        resolve({
+                            errCode: 0,
+                            errMessage: error
+                        })
+                    } else {
+
+
+                        let product = await db.OrderProduct.create({
+
+                            addressUserId: data.addressUserId,
+                            isPaymentOnlien: data.isPaymentOnlien,
+                            statusId: 'S3',
+                            typeShipId: data.typeShipId,
+                            voucherId: data.voucherId,
+                            note: data.note
+
+                        })
+
+                        data.arrDataShopCart = data.arrDataShopCart.map((item, index) => {
+                            item.orderId = product.dataValues.id
+                            return item;
+                        })
+
+                        await db.OrderDetail.bulkCreate(data.arrDataShopCart)
+                        let res = await db.ShopCart.findOne({ where: { userId: data.userId, statusId: 0 } })
+                        if (res) {
+                            await db.ShopCart.destroy({
+                                where: { userId: data.userId }
+                            })
+                            for (let i = 0; i < data.arrDataShopCart.length; i++) {
+                                let productDetailSize = await db.ProductDetailSize.findOne({
+                                    where: { id: data.arrDataShopCart[i].productId },
+                                    raw: false
+                                })
+                                productDetailSize.stock = productDetailSize.stock - data.arrDataShopCart[i].quantity
+                                await productDetailSize.save()
+
+                            }
+
+                        }
+                        if (data.voucherId && data.userId) {
+                            let voucherUses = await db.VoucherUsed.findOne({
+                                where: {
+                                    voucherId: data.voucherId,
+                                    userId: data.userId
+                                },
+                                raw: false
+                            })
+                            voucherUses.status = 1;
+                            await voucherUses.save()
+                        }
+                        resolve({
+                            errCode: 0,
+                            errMessage: 'ok'
+                        })
+
+                    }
+                });
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
@@ -364,5 +556,7 @@ module.exports = {
     updateStatusOrder: updateStatusOrder,
     getAllOrdersByUser: getAllOrdersByUser,
     getAllOrdersByShipper: getAllOrdersByShipper,
+    paymentOrder: paymentOrder,
+    paymentOrderSuccess: paymentOrderSuccess,
 
 }
