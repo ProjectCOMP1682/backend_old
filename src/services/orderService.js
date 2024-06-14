@@ -731,6 +731,61 @@ function sortObject(obj) {
     }
     return sorted;
 }
+let confirmOrder = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.shipperId || !data.orderId || !data.statusId) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter !'
+                })
+            } else {
+                let orderProduct = await db.OrderProduct.findOne({ where: { id: data.orderId }, raw: false })
+                orderProduct.shipperId = data.shipperId
+                orderProduct.statusId = data.statusId
+                await orderProduct.save()
+
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+
+            }
+
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let updateImageOrder = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.id || !data.image) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Missing required parameter !'
+                })
+            } else {
+                let order = await db.OrderProduct.findOne({
+                    where: { id: data.id },
+                    raw: false
+                })
+                order.image = data.image
+                await order.save()
+
+
+
+                resolve({
+                    errCode: 0,
+                    errMessage: 'ok'
+                })
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
@@ -743,4 +798,7 @@ module.exports = {
     paymentOrderVnpay: paymentOrderVnpay,
     confirmOrderVnpay: confirmOrderVnpay,
     paymentOrderVnpaySuccess: paymentOrderVnpaySuccess,
+    confirmOrder: confirmOrder,
+    updateImageOrder: updateImageOrder
+
 }

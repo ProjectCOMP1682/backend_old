@@ -125,6 +125,8 @@ let initwebRoutes = (app) => {
     router.get('/api/get-all-order-by-shipper', orderController.getAllOrdersByShipper)
     router.post('/api/payment-order-vnpay', middlewareControllers.verifyTokenUser, orderController.paymentOrderVnpay)
     router.post('/api/vnpay_return', orderController.confirmOrderVnpay)
+    router.put('/api/confirm-order', orderController.confirmOrder)
+    router.put('/api/update-image-order', orderController.updateImageOrder)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
