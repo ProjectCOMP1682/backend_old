@@ -2,12 +2,12 @@ import db from "../models/index";
 import paypal from 'paypal-rest-sdk'
 const { Op } = require("sequelize");
 import { EXCHANGE_RATES } from '../utils/constants'
-// import { v4 as uuidv4 } from 'uuid';
-// var querystring = require('qs');
-// var crypto = require("crypto");
-// var dateFormat = require('dateformat')
+import { v4 as uuidv4 } from 'uuid';
+var querystring = require('qs');
+var dateFormat = require('dateformat')
 require('dotenv').config()
 import moment from 'moment';
+import crypto from "crypto";
 import localization from 'moment/locale/vi';
 moment.updateLocale('vi', localization);
 paypal.configure({
@@ -549,6 +549,188 @@ let paymentOrderSuccess = (data) => {
         }
     })
 }
+let paymentOrderVnpaySuccess = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let product = await db.OrderProduct.create({
+
+                addressUserId: data.addressUserId,
+                isPaymentOnlien: data.isPaymentOnlien,
+                statusId: 'S3',
+                typeShipId: data.typeShipId,
+                voucherId: data.voucherId,
+                note: data.note
+
+            })
+
+            data.arrDataShopCart = data.arrDataShopCart.map((item, index) => {
+                item.orderId = product.dataValues.id
+                return item;
+            })
+
+            await db.OrderDetail.bulkCreate(data.arrDataShopCart)
+            let res = await db.ShopCart.findOne({ where: { userId: data.userId, statusId: 0 } })
+            if (res) {
+                await db.ShopCart.destroy({
+                    where: { userId: data.userId }
+                })
+                for (let i = 0; i < data.arrDataShopCart.length; i++) {
+                    let productDetailSize = await db.ProductDetailSize.findOne({
+                        where: { id: data.arrDataShopCart[i].productId },
+                        raw: false
+                    })
+                    productDetailSize.stock = productDetailSize.stock - data.arrDataShopCart[i].quantity
+                    await productDetailSize.save()
+
+                }
+
+            }
+            if (data.voucherId && data.userId) {
+                let voucherUses = await db.VoucherUsed.findOne({
+                    where: {
+                        voucherId: data.voucherId,
+                        userId: data.userId
+                    },
+                    raw: false
+                })
+                voucherUses.status = 1;
+                await voucherUses.save()
+            }
+            resolve({
+                errCode: 0,
+                errMessage: 'ok'
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+let paymentOrderVnpay = (req) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            var ipAddr = req.headers['x-forwarded-for'] ||
+                req.connection.remoteAddress ||
+                req.socket.remoteAddress ||
+                req.connection.socket.remoteAddress;
+
+
+
+            var tmnCode = process.env.VNP_TMNCODE;
+            var secretKey = process.env.VNP_HASHSECRET
+            var vnpUrl = process.env.VNP_URL
+            var returnUrl = process.env.VNP_RETURNURL
+
+
+
+
+            var createDate = process.env.DATE_VNPAYMENT;
+            var orderId = uuidv4();
+
+            console.log("createDate", createDate)
+            console.log("orderId", orderId)
+            var amount = req.body.amount;
+            var bankCode = req.body.bankCode;
+
+            var orderInfo = req.body.orderDescription;
+            var orderType = req.body.orderType;
+            var locale = req.body.language;
+            if (locale === null || locale === '') {
+                locale = 'vn';
+            }
+            var currCode = 'VND';
+            var vnp_Params = {};
+            vnp_Params['vnp_Version'] = '2.1.0';
+            vnp_Params['vnp_Command'] = 'pay';
+            vnp_Params['vnp_TmnCode'] = tmnCode;
+            // vnp_Params['vnp_Merchant'] = ''
+            vnp_Params['vnp_Locale'] = locale;
+            vnp_Params['vnp_CurrCode'] = currCode;
+            vnp_Params['vnp_TxnRef'] = orderId;
+            vnp_Params['vnp_OrderInfo'] = orderInfo;
+            vnp_Params['vnp_OrderType'] = orderType;
+            vnp_Params['vnp_Amount'] = amount * 100;
+            vnp_Params['vnp_ReturnUrl'] = returnUrl;
+            vnp_Params['vnp_IpAddr'] = ipAddr;
+            vnp_Params['vnp_CreateDate'] = createDate;
+            if (bankCode !== null && bankCode !== '') {
+                vnp_Params['vnp_BankCode'] = bankCode;
+            }
+
+            vnp_Params = sortObject(vnp_Params);
+
+
+            var signData = querystring.stringify(vnp_Params, { encode: false });
+
+            var hmac = crypto.createHmac("sha512", secretKey);
+            var signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");
+            vnp_Params['vnp_SecureHash'] = signed;
+
+            vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+            console.log(vnpUrl)
+            resolve({
+                errCode: 200,
+                link: vnpUrl
+            })
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+let confirmOrderVnpay = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            var vnp_Params = data;
+
+            var secureHash = vnp_Params['vnp_SecureHash'];
+
+            delete vnp_Params['vnp_SecureHash'];
+            delete vnp_Params['vnp_SecureHashType'];
+
+            vnp_Params = sortObject(vnp_Params);
+
+
+            var tmnCode = process.env.VNP_TMNCODE;
+            var secretKey = process.env.VNP_HASHSECRET
+
+
+            var signData = querystring.stringify(vnp_Params, { encode: false });
+
+            var hmac = crypto.createHmac("sha512", secretKey);
+            var signed = hmac.update(new Buffer(signData, 'utf-8')).digest("hex");
+
+            if (secureHash === signed) {
+                resolve({
+                    errCode: 0,
+                    errMessage: 'Success'
+                })
+            } else {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'failed'
+                })
+            }
+
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+function sortObject(obj) {
+    var sorted = {};
+    var str = [];
+    var key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            str.push(encodeURIComponent(key));
+        }
+    }
+    str.sort();
+    for (key = 0; key < str.length; key++) {
+        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+    }
+    return sorted;
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
@@ -558,5 +740,7 @@ module.exports = {
     getAllOrdersByShipper: getAllOrdersByShipper,
     paymentOrder: paymentOrder,
     paymentOrderSuccess: paymentOrderSuccess,
-
+    paymentOrderVnpay: paymentOrderVnpay,
+    confirmOrderVnpay: confirmOrderVnpay,
+    paymentOrderVnpaySuccess: paymentOrderVnpaySuccess,
 }

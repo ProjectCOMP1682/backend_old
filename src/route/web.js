@@ -122,7 +122,9 @@ let initwebRoutes = (app) => {
     router.get('/api/get-all-order-by-shipper', orderController.getAllOrdersByShipper)
     router.post('/api/payment-order', middlewareControllers.verifyTokenUser, orderController.paymentOrder)
     router.post('/api/payment-order-success', middlewareControllers.verifyTokenUser, orderController.paymentOrderSuccess)
-
+    router.get('/api/get-all-order-by-shipper', orderController.getAllOrdersByShipper)
+    router.post('/api/payment-order-vnpay', middlewareControllers.verifyTokenUser, orderController.paymentOrderVnpay)
+    router.post('/api/vnpay_return', orderController.confirmOrderVnpay)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;

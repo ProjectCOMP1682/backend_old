@@ -95,6 +95,42 @@ let paymentOrderSuccess = async (req, res) => {
         })
     }
 }
+let paymentOrderVnpay = async (req, res) => {
+    try {
+        let data = await orderService.paymentOrderVnpay(req);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
+let confirmOrderVnpay = async (req, res) => {
+    try {
+        let data = await orderService.confirmOrderVnpay(req.body);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
+let paymentOrderVnpaySuccess = async (req, res) => {
+    try {
+        let data = await orderService.paymentOrderVnpaySuccess(req.body);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.log(error)
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from server'
+        })
+    }
+}
 module.exports = {
     createNewOrder: createNewOrder,
     getAllOrders: getAllOrders,
@@ -104,5 +140,7 @@ module.exports = {
     getAllOrdersByShipper: getAllOrdersByShipper,
     paymentOrder: paymentOrder,
     paymentOrderSuccess: paymentOrderSuccess,
-
+    paymentOrderVnpay: paymentOrderVnpay,
+    confirmOrderVnpay: confirmOrderVnpay,
+    paymentOrderVnpaySuccess: paymentOrderVnpaySuccess,
 }
