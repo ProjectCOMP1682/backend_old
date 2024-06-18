@@ -10,6 +10,7 @@ import commentController from '../controllers/commentController';
 import shopCartController from '../controllers/shopCartController';
 import orderController from '../controllers/orderController';
 import addressUserController from '../controllers/addressUserController';
+import messageController from '../controllers/messageController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -134,7 +135,12 @@ let initwebRoutes = (app) => {
     router.delete('/api/delete-address-user', middlewareControllers.verifyTokenUser, addressUserController.deleteAddressUser)
     router.put('/api/edit-address-user', middlewareControllers.verifyTokenUser, addressUserController.editAddressUser)
     router.get('/api/get-detail-address-user-by-id', middlewareControllers.verifyTokenUser, addressUserController.getDetailAddressUserById)
-
+    //=================API MESSAGE============================//
+    router.post('/api/create-new-room', middlewareControllers.verifyTokenUser, messageController.createNewRoom)
+    router.post('/api/sendMessage', middlewareControllers.verifyTokenUser, messageController.sendMessage)
+    router.get('/api/loadMessage', middlewareControllers.verifyTokenUser, messageController.loadMessage)
+    router.get('/api/listRoomOfUser', middlewareControllers.verifyTokenUser, messageController.listRoomOfUser)
+    router.get('/api/listRoomOfAdmin', middlewareControllers.verifyTokenAdmin, messageController.listRoomOfAdmin)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;

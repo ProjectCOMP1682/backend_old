@@ -30,7 +30,7 @@ let createNewAddressUser = (data) => {
 let getAllAddressUserByUserId = (userId) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!userId) {
+                if (!userId) {
                 resolve({
                     errCode: 1,
                     errMessage: 'Missing required parameter !'
