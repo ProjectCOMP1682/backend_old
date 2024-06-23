@@ -6,7 +6,6 @@ import bannerController from '../controllers/bannerController';
 import blogController from '../controllers/blogController';
 import typeshipController from '../controllers/typeshipController';
 import voucherController from '../controllers/voucherController';
-import commentController from '../controllers/commentController';
 import shopCartController from '../controllers/shopCartController';
 import orderController from '../controllers/orderController';
 import addressUserController from '../controllers/addressUserController';
