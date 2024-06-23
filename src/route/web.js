@@ -11,6 +11,7 @@ import shopCartController from '../controllers/shopCartController';
 import orderController from '../controllers/orderController';
 import addressUserController from '../controllers/addressUserController';
 import messageController from '../controllers/messageController';
+import commentController from '../controllers/commentController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -141,6 +142,11 @@ let initwebRoutes = (app) => {
     router.get('/api/loadMessage', middlewareControllers.verifyTokenUser, messageController.loadMessage)
     router.get('/api/listRoomOfUser', middlewareControllers.verifyTokenUser, messageController.listRoomOfUser)
     router.get('/api/listRoomOfAdmin', middlewareControllers.verifyTokenAdmin, messageController.listRoomOfAdmin)
+//==================API COMMENT============================//
+    router.post('/api/create-new-comment', middlewareControllers.verifyTokenUser, commentController.createNewComment)
+    router.post('/api/reply-comment', middlewareControllers.verifyTokenAdmin, commentController.ReplyComment)
+    router.get('/api/get-all-comment-by-blogId', commentController.getAllCommentByBlogId)
+    router.delete('/api/delete-comment', middlewareControllers.verifyTokenUser, commentController.deleteComment)
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
