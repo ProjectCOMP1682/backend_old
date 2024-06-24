@@ -11,6 +11,7 @@ import orderController from '../controllers/orderController';
 import addressUserController from '../controllers/addressUserController';
 import messageController from '../controllers/messageController';
 import commentController from '../controllers/commentController';
+import statisticController from '../controllers/statisticController';
 
 import middlewareControllers from '../middlewares/jwtVerify';
 let router = express.Router();
@@ -146,6 +147,15 @@ let initwebRoutes = (app) => {
     router.post('/api/reply-comment', middlewareControllers.verifyTokenAdmin, commentController.ReplyComment)
     router.get('/api/get-all-comment-by-blogId', commentController.getAllCommentByBlogId)
     router.delete('/api/delete-comment', middlewareControllers.verifyTokenUser, commentController.deleteComment)
+    //=================API STATISTIC==============================//
+    router.get('/api/get-count-card-statistic', middlewareControllers.verifyTokenAdmin, statisticController.getCountCardStatistic)
+    router.get('/api/get-count-status-order', middlewareControllers.verifyTokenAdmin, statisticController.getCountStatusOrder)
+    router.get('/api/get-statistic-by-month', middlewareControllers.verifyTokenAdmin, statisticController.getStatisticByMonth)
+    router.get('/api/get-statistic-by-day', middlewareControllers.verifyTokenAdmin, statisticController.getStatisticByDay)
+    router.get('/api/get-statistic-overturn', middlewareControllers.verifyTokenAdmin, statisticController.getStatisticOverturn)
+    router.get('/api/get-statistic-profit', middlewareControllers.verifyTokenAdmin, statisticController.getStatisticProfit)
+    router.get('/api/get-statistic-stock-product', middlewareControllers.verifyTokenAdmin, statisticController.getStatisticStockProduct)
+
     return app.use("/", router);
 }
 module.exports = initwebRoutes;
