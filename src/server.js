@@ -1,17 +1,17 @@
 import express from "express";
 import bodyParser from "body-parser";
 import viewEngine from "./config/viewEngine";
+import initwebRoutes from "./routes/web";
 import connectDB from "./config/connectDB";
-import initwebRoutes from "./route/web";
-import http from "http";
+import {sendJobMail,updateFreeViewCv} from "./utils/schedule"
 require('dotenv').config();
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 
 let app = express();
+
 app.use(function (req, res, next) {
 
     // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', process.env.URL_REACT);
 
     // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -26,38 +26,18 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
+
 app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
-
+sendJobMail();
+updateFreeViewCv()
 viewEngine(app);
 initwebRoutes(app);
-const server = http.createServer(app);
 
 connectDB();
 
-const socketIo = require("socket.io")(server, {
-    cors: {
-        origin: "*",
-    }
-});
-socketIo.on("connection", (socket) => {
-    console.log("New client connected" + socket.id);
-
-    socket.on("sendDataClient", function(data) {
-        sendMessage(data)
-        socketIo.emit("sendDataServer", { data });
-    })
-    socket.on("loadRoomClient", function(data) {
-
-        socketIo.emit("loadRoomServer", { data });
-    })
-    socket.on("disconnect", () => {
-        console.log("Client disconnected");
-    });
-});
-
 let port = process.env.PORT || 6969;
 
-server.listen(port, () => {
+app.listen(port, () => {
     console.log("Backend Nodejs is running on the port : " + port)
 });

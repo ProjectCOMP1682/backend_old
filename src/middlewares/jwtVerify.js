@@ -2,14 +2,12 @@ const jwt = require('jsonwebtoken')
 import db from "../models/index";
 require('dotenv').config();
 const secretString = process.env.JWT_SECRET
-import CommonUtils from '../utils/CommonUtils';
+
 const middlewareControllers = {
     verifyTokenUser: (req, res, next) => {
         const token = req.headers.authorization
-
         if (token) {
             const accessToken = token.split(' ')[1]
-
             jwt.verify(accessToken, secretString, async (err, payload) => {
                 if (err) {
                     return res.status(403).json({
@@ -18,7 +16,12 @@ const middlewareControllers = {
                         refresh: true,
                     })
                 }
-                const user = await db.User.findOne({ where: { id: payload.sub } })
+                const user = await db.User.findOne({ 
+                    where: { id: payload.sub } ,
+                    attributes: {
+                        exclude: ['userId']
+                    },
+                })
                 if (!user) {
                     return res.status(404).json({
                         status: false,
@@ -40,10 +43,8 @@ const middlewareControllers = {
     },
     verifyTokenAdmin: (req, res, next) => {
         const token = req.headers.authorization
-
         if (token) {
             const accessToken = token.split(' ')[1]
-
             jwt.verify(accessToken, secretString, async (err, payload) => {
                 if (err) {
                     return res.status(403).json({
@@ -52,7 +53,19 @@ const middlewareControllers = {
                         refresh: true,
                     })
                 }
-                const user = await db.User.findOne({ where: { id: payload.sub } })
+                const user = await db.User.findOne(
+                    {
+                        where: { id: payload.sub },
+                        attributes: {
+                            exclude: ['userId']
+                        },
+                        include: [
+                            { model: db.Account, as: 'userAccountData' }
+                        ],
+                        raw: true,
+                        nest: true
+                    }
+                )
                 if (!user) {
                     return res.status(404).json({
                         status: false,
@@ -60,18 +73,15 @@ const middlewareControllers = {
                         refresh: true,
                     })
                 }
-                if (user && (user.roleId == 'R4' || user.roleId == 'R1')) {
-                    req.user = user
-                    next()
-
-                } else {
+                if (user && user.userAccountData.roleCode !== 'ADMIN') {
                     return res.status(404).json({
                         status: false,
-                        errMessage: 'Bạn không có đủ quyền',
+                        errMessage: 'Permission denied',
                         refresh: true,
                     })
                 }
-
+                req.user = user
+                next()
             })
         } else {
             return res.status(401).json({
@@ -81,48 +91,6 @@ const middlewareControllers = {
             })
         }
     },
-    refreshToken: async (req, res) => {
-        const token = req.headers.authorization;
-
-        if (token) {
-            const refreshToken = token.split(' ')[1];
-
-            jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, payload) => {
-                if (err) {
-                    return res.status(403).json({
-                        status: false,
-                        errMessage: 'Refresh Token is not valid!',
-                        refresh: true,
-                    });
-                }
-
-                const user = await db.User.findOne({ where: { id: payload.sub } });
-                if (!user) {
-                    return res.status(404).json({
-                        status: false,
-                        errMessage: 'User does not exist',
-                        refresh: true,
-                    });
-                }
-
-                const newAccessToken = CommonUtils.encodeToken(user.id);
-                const newRefreshToken = CommonUtils.encodeRefreshToken(user.id);
-
-                return res.status(200).json({
-                    status: true,
-                    accessToken: newAccessToken,
-                    refreshToken:newRefreshToken,
-                    message: 'Access Token refreshed successfully',
-                });
-            });
-        } else {
-            return res.status(401).json({
-                status: false,
-                message: "You're not authenticated!",
-                refresh: true,
-            });
-        }
-    }
 }
 
 module.exports = middlewareControllers
